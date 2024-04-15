@@ -1,20 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
-import 'package:flutter_triple/flutter_triple.dart';
+import 'package:signals/signals_flutter.dart';
 
-import '../../../../../shared/presenter/components/alert_dialog_info/alert_dialog_info.dart';
-import '../../../../../shared/presenter/components/app_logo/app_logo.dart';
-import '../../../../../shared/presenter/components/app_version_informations/app_version_informaitons.dart';
-import '../../../../../shared/presenter/components/default_elevated_button/default_elevated_button.dart';
-import '../../../../../shared/presenter/components/default_text_button/default_text_button.dart';
-import '../../../../../shared/utils/default_failure_messages/default_failure_messages.dart';
-import '../../../../../shared/utils/routes/app_routes.dart';
+import '../../../../../shared/presenter/components/default_loading/default_loading.dart';
+import '../../../../../shared/utils/helpers/messages/messages.dart';
 import '../../../../../shared/utils/styles/colors_app/colors_app.dart';
-import '../../../../../shared/utils/styles/screen_manager/screen_size/screen_size.dart';
 import '../../../../../shared/utils/styles/text_styles/text_styles.dart';
+import 'components/employee_chip/employee_chip.dart';
 import 'home_controller.dart';
-
-typedef HomeTripleBuilder = TripleBuilder<HomeController, bool>;
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -22,161 +17,176 @@ class HomePage extends StatefulWidget {
   HomePageState createState() => HomePageState();
 }
 
-class HomePageState extends State<HomePage> {
+class HomePageState extends State<HomePage> with MessageViewMixin {
   final controller = Modular.get<HomeController>();
-  // late final Disposer disposer;
+  final employeeNameController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    // disposer = controller.observer(
-    //   onError: (error) async {
-    //     showDialog(
-    //       barrierDismissible: false,
-    //       context: context,
-    //       builder: (context) {
-    //         return AlertDialogInfo(
-    //           title: error is EmptyOrderFailure
-    //               ? 'Sem Notas'
-    //               : 'Comportamento Inesperado',
-    //           description: error.message ?? DefaultFailureMessages.errorMessage,
-    //         );
-    //       },
-    //     );
-    //   },
-    // );
+    scheduleMicrotask(() {
+      this.controller.getAllEmployees();
+    });
   }
 
   @override
   void dispose() {
-    // disposer();
+    employeeNameController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        actions: [
-          HomeTripleBuilder(
-            store: this.controller,
-            builder: (_, triple) {
-              return DefaultTextButton(
-                label: 'Configurações',
-                icon: Icons.settings,
-                onPressed: triple.isLoading
-                    ? null
-                    : () => Modular.to.pushNamed('${AppRoutes.settings}/'),
-              );
-            },
-          ),
-          Expanded(child: Container()),
-          HomeTripleBuilder(
-            store: this.controller,
-            builder: (_, triple) {
-              return DefaultTextButton(
-                label: 'Sair',
-                icon: Icons.logout,
-                onPressed: triple.isLoading ? null : this.controller.doLogout,
-              );
-            },
-          ),
-        ],
-      ),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            const AppLogo(),
-            Column(
-              children: <Widget>[
-                const Divider(
-                  color: Colors.white,
-                  height: 20,
-                ),
-                Text(
-                  this.controller.displayName,
-                  style: context.textStyles.title.copyWith(color: Colors.white),
-                ),
-                const Divider(
-                  color: Colors.white,
-                  height: 20,
-                ),
-              ],
-            ),
-            Column(
-              children: [
-                HomeTripleBuilder(
-                  store: this.controller,
-                  builder: (_, triple) {
-                    return DefaultElevatedButton(
-                      height: 50,
-                      onPressed: () {},
-                      label: 'Buscar Nota',
-                      backgroundColor: Colors.white,
-                      textColor: context.colors.primary,
-                      isLoading: triple.isLoading,
-                      elevation: 10,
-                      width: context.screenWidth,
-                    );
-                  },
-                ),
-                const SizedBox(height: 30),
-                HomeTripleBuilder(
-                  store: this.controller,
-                  builder: (_, triple) {
-                    return Visibility(
-                      visible: this.controller.isAdmin,
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: DefaultElevatedButton(
-                              height: 50,
-                              // onPressed: this.controller.loadingTest,
-                              onPressed: this.controller.pushOrdersPage,
-                              label: 'Notas',
-                              backgroundColor: Colors.white,
-                              textColor: context.colors.primary,
-                              isLoading: triple.isLoading,
-                              elevation: 10,
-                            ),
-                          ),
-                          const SizedBox(
-                            width: 10,
-                          ),
-                          Expanded(
-                            child: DefaultElevatedButton(
-                              height: 50,
-                              onPressed: this.controller.pushRegisterCode,
-                              label: 'Cad. Código',
-                              backgroundColor: Colors.white,
-                              textColor: context.colors.primary,
-                              isLoading: triple.isLoading,
-                              elevation: 10,
-                            ),
-                          ),
-                        ],
+            Expanded(
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5),
                       ),
-                    );
-                  },
-                ),
-              ],
-            ),
-            Column(
-              children: [
-                Text(
-                  'Desenvolvido por SRS Desenvolvimento de Sistemas LTDA',
-                  textAlign: TextAlign.center,
-                  style: context.textStyles.body.copyWith(color: Colors.white),
-                ),
-                const SizedBox(height: 5),
-                AppVersionInformations(
-                  appVersion: controller.appVersion,
-                ),
-              ],
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          children: [
+                            Text(
+                              'Conferentes',
+                              style: context.textStyles.title,
+                            ),
+                            const SizedBox(height: 10),
+                            Watch(
+                              (_) {
+                                return TextField(
+                                  controller: employeeNameController,
+                                  enabled: !this.controller.isEmployessLoading,
+                                  decoration: InputDecoration(
+                                    label: const Text(
+                                      'Pesquise o Nome do Conferente',
+                                    ),
+                                    isDense: true,
+                                    suffix: IconButton(
+                                      icon: Icon(
+                                        Icons.delete,
+                                        size: 20,
+                                        color: context.colors.primary,
+                                      ),
+                                      onPressed: () {
+                                        employeeNameController.clear();
+                                        this
+                                            .controller
+                                            .searchEmployeeWithName('');
+                                      },
+                                    ),
+                                  ),
+                                  onChanged:
+                                      this.controller.searchEmployeeWithName,
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 10),
+                            Watch(
+                              (_) {
+                                final employees = this.controller.employees;
+                                return Expanded(
+                                  child: Visibility(
+                                    visible: this.controller.isEmployessLoading,
+                                    replacement: Visibility(
+                                      visible:
+                                          this.controller.employees.isNotEmpty,
+                                      replacement: Text(
+                                        'Não encontramos nenhum conferente cadastrado',
+                                        style: context.textStyles.subtitle,
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      child: ListView.separated(
+                                        itemCount: employees.length,
+                                        itemBuilder: (_, index) {
+                                          final employee = employees[index];
+                                          return ListTile(
+                                            title: Text(
+                                              '${employee.userId} - ${employee.displayName}',
+                                              style:
+                                                  context.textStyles.subtitle,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            trailing: IconButton(
+                                              icon: Icon(
+                                                color: context.colors.primary,
+                                                Icons.arrow_forward_ios_rounded,
+                                                size: 15,
+                                              ),
+                                              onPressed: () {},
+                                            ),
+                                          );
+                                        },
+                                        separatorBuilder: (context, index) {
+                                          return const Divider();
+                                        },
+                                      ),
+                                    ),
+                                    child: Column(
+                                      children: [
+                                        DefaultLoading(
+                                          color: context.colors.primary,
+                                        ),
+                                        const SizedBox(height: 10),
+                                        Text(
+                                          'Estamos buscando a lista de conferentes, por favor aguarde',
+                                          textAlign: TextAlign.center,
+                                          style: context.textStyles.subtitle,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 4,
+                    child: Column(
+                      children: [
+                        Wrap(
+                          spacing: 10,
+                          children: [
+                            EmployeeChip(
+                              label: 'Todos',
+                              canDelete: false,
+                              onDelete: () {},
+                              onSelected: () {},
+                            ),
+                            EmployeeChip(
+                              label: 'Felipe Argnton',
+                              onDelete: () {},
+                              onSelected: () {},
+                            ),
+                          ],
+                        ),
+                        Expanded(
+                          child: Card(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                            child: Container(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),

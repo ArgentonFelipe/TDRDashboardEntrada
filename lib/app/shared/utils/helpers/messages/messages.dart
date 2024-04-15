@@ -1,56 +1,89 @@
-import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:signals/signals.dart';
+import 'package:top_snackbar_flutter/custom_snack_bar.dart';
+import 'package:top_snackbar_flutter/top_snack_bar.dart';
 
-mixin Messages<T extends StatefulWidget> on State<T> {
-  void showError(String message) {
-    _showSnackBar(
-      AwesomeSnackbarContent(
-        title: 'Erro',
-        message: message,
-        contentType: ContentType.failure,
-      ),
+final class Messages {
+  static void showError({
+    required String message,
+    required BuildContext context,
+  }) {
+    showTopSnackBar(
+      Overlay.of(context),
+      CustomSnackBar.error(message: message),
     );
   }
 
-  void showWarning(String message) {
-    _showSnackBar(
-      AwesomeSnackbarContent(
-        title: 'Atenção',
-        message: message,
-        contentType: ContentType.warning,
-      ),
+  static void showInfo({
+    required String message,
+    required BuildContext context,
+  }) {
+    showTopSnackBar(
+      Overlay.of(context),
+      CustomSnackBar.info(message: message),
     );
+  }
+
+  static void showSuccess({
+    required String message,
+    required BuildContext context,
+  }) {
+    showTopSnackBar(
+      Overlay.of(context),
+      CustomSnackBar.success(message: message),
+    );
+  }
+}
+
+mixin MessageStateMixin {
+  final Signal<String?> _errorMessage = signal(null);
+  String? get errorMessage => _errorMessage();
+
+  final Signal<String?> _infoMessage = signal(null);
+  String? get infoMessage => _infoMessage();
+
+  final Signal<String?> _successMessage = signal(null);
+  String? get successMessage => _successMessage();
+
+  void clearError() => _errorMessage.value = null;
+  void clearInfo() => _infoMessage.value = null;
+  void clearSuccess() => _successMessage.value = null;
+
+  void showError(String message) {
+    untracked(() => clearError());
+    _errorMessage.value = message;
   }
 
   void showInfo(String message) {
-    _showSnackBar(
-      AwesomeSnackbarContent(
-        title: 'Atenção',
-        message: message,
-        contentType: ContentType.help,
-      ),
-    );
+    untracked(() => clearInfo());
+    _infoMessage.value = message;
   }
 
   void showSuccess(String message) {
-    _showSnackBar(
-      AwesomeSnackbarContent(
-        title: 'Sucesso',
-        message: message,
-        contentType: ContentType.success,
-      ),
-    );
+    untracked(() => clearSuccess());
+    _successMessage.value = message;
   }
 
-  void _showSnackBar(AwesomeSnackbarContent content) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: content,
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        padding: const EdgeInsets.only(top: 32),
-      ),
-    );
+  void clearAllMessages() {
+    untracked(() {
+      clearError();
+      clearInfo();
+      clearSuccess();
+    });
+  }
+}
+
+mixin MessageViewMixin<T extends StatefulWidget> on State<T> {
+  void messageListener(MessageStateMixin state) {
+    effect(() {
+      switch (state) {
+        case MessageStateMixin(:final errorMessage?):
+          Messages.showError(message: errorMessage, context: context);
+        case MessageStateMixin(:final infoMessage?):
+          Messages.showInfo(message: infoMessage, context: context);
+        case MessageStateMixin(:final successMessage?):
+          Messages.showSuccess(message: successMessage, context: context);
+      }
+    });
   }
 }

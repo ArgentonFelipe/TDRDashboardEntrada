@@ -49,6 +49,7 @@ dependencies:
   equatable: ^2.0.5
   flutter_triple: ^3.0.0
   validatorless: ^1.2.3
+  top_snackbar_flutter: ^3.1.0
 
 dev_dependencies:
   flutter_test:

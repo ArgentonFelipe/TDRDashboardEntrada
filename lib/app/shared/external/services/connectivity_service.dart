@@ -16,7 +16,8 @@ class ConnectivityService implements IConnectivityService {
     final connectivityResult = await _connectivity.checkConnectivity();
 
     final isOnline = connectivityResult.any((result) {
-      return result == ConnectivityResult.wifi;
+      return result == ConnectivityResult.wifi ||
+          result == ConnectivityResult.ethernet;
     });
 
     if (isOnline) {

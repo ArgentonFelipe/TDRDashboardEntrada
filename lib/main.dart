@@ -18,7 +18,7 @@ Future<void> main() async {
 
   runApp(
     ModularApp(
-      module: AppModule(),
+      module: AppModule(), 
       child: const AppWidget(),
     ),
   );

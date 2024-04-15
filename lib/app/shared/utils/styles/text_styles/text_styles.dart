@@ -20,6 +20,14 @@ class TextStyles {
     );
   }
 
+  TextStyle get subtitle {
+    return TextStyle(
+      fontFamily: appFont,
+      fontWeight: FontWeight.bold,
+      fontSize: 14,
+    );
+  }
+
   TextStyle get button {
     return TextStyle(
       fontFamily: appFont,
