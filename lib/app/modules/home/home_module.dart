@@ -1,35 +1,24 @@
 import 'package:flutter_modular/flutter_modular.dart';
+import 'package:tdr_core/tdr_core.dart';
 
-import '../../shared/shared_module.dart';
-import 'domain/repositories/home_rest_repository_interface.dart';
-import 'domain/usecases/get_employess/get_employees.dart';
-import 'domain/usecases/get_employess/get_employees_interface.dart';
-import 'external/repositories/home_rest_repository.dart';
-import 'presenter/pages/home/home_controller.dart';
-import 'presenter/pages/home/home_page.dart';
-import 'presenter/stores/opened_employees/opened_employees_store.dart';
+import '../../shared/utils/app_routes/app_routes.dart';
+import '../conference/conference_module.dart';
+import 'presenter/pages/menu/menu_controller.dart';
+import 'presenter/pages/menu/menu_page.dart';
 
 class HomeModule extends Module {
   @override
-  List<Module> get imports => [SharedModule()];
+  List<Module> get imports => [CoreModule()];
 
   @override
   void binds(Injector i) {
     //? CONTROLLERS
-    i.addLazySingleton<HomeController>(HomeController.new);
-
-    //? USECASES
-    i.addLazySingleton<IGetEmployees>(GetEmployees.new);
-
-    //? REPOSITORIES
-    i.addLazySingleton<IHomeRestRepository>(HomeRestRepository.new);
-
-    //? STORES
-    i.addLazySingleton<OpenedEmployeesStore>(OpenedEmployeesStore.new);
+    i.addLazySingleton<MenuController>(MenuController.new);
   }
 
   @override
   void routes(RouteManager r) {
-    r.child(Modular.initialRoute, child: (_) => const HomePage());
+    r.child(AppRoutes.menu, child: (_) => const MenuPage());
+    r.module(AppRoutes.conference, module: ConferenceModule());
   }
 }
